@@ -18,4 +18,8 @@
 @property (nonatomic, assign) int articleToolbarFixHeightAtiPhone;
 @property (nonatomic, assign) int articleToolbarFixHeightAtiPad;
 
+@property (nonatomic, assign) BOOL isLoading;
+@property (nonatomic, strong) UIActivityIndicatorView *loadingView;
+@property (nonatomic, strong) UITextView *loadingViewText;
+
 @end
