@@ -61,21 +61,21 @@
     return _articleToolbar;
 }
 
-- (UIActivityIndicatorView *)loadingView
+- (UIActivityIndicatorView *)activityIndicatorView
 {
-    if (!_loadingView) {
-        _loadingView = [[UIActivityIndicatorView alloc] init];
-        _loadingView.backgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:0.4];
-        _loadingView.layer.masksToBounds = YES;
+    if (!_activityIndicatorView) {
+        _activityIndicatorView = [[UIActivityIndicatorView alloc] init];
+        _activityIndicatorView.backgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:0.4];
+        _activityIndicatorView.layer.masksToBounds = YES;
     }
-    return _loadingView;
+    return _activityIndicatorView;
 }
 
-- (UITextView *)loadingViewText
+- (UITextView *)loadingTextView
 {
-    if (!_loadingViewText)
-        _loadingViewText = [[UITextView alloc] init];
-    return _loadingViewText;
+    if (!_loadingTextView)
+        _loadingTextView = [[UITextView alloc] init];
+    return _loadingTextView;
 }
 
 #pragma makr - view event
@@ -108,6 +108,58 @@
 }
  */
 
+#pragma mark - event
+
+- (void)toolbarItemAction:(id)sender
+{
+    
+}
+
+- (void)initQuery
+{
+    self.isLoading = YES;
+    [self setupLayout];
+}
+
+- (void)finishQuery:(NSDictionary *)ret
+{
+    if (ret) {
+        if (ret[YYArticleView_QUERY_FINISH_DATA_TITLE]) {
+            if ([ret[YYArticleView_QUERY_FINISH_DATA_TITLE] isKindOfClass:[NSAttributedString class]])
+                self.articleTitle.attributedText = ret[YYArticleView_QUERY_FINISH_DATA_TITLE];
+            else if ([ret[YYArticleView_QUERY_FINISH_DATA_TITLE] isKindOfClass:[NSString class]])
+                self.articleTitle.text = ret[YYArticleView_QUERY_FINISH_DATA_TITLE];
+        }
+        if (ret[YYArticleView_QUERY_FINISH_DATA_SUBTITLE]) {
+            if ([ret[YYArticleView_QUERY_FINISH_DATA_SUBTITLE] isKindOfClass:[NSAttributedString class]])
+                self.articleSubtitle.attributedText = ret[YYArticleView_QUERY_FINISH_DATA_SUBTITLE];
+            else if ([ret[YYArticleView_QUERY_FINISH_DATA_SUBTITLE] isKindOfClass:[NSString class]])
+                self.articleSubtitle.text = ret[YYArticleView_QUERY_FINISH_DATA_SUBTITLE];
+        }
+        if (ret[YYArticleView_QUERY_FINISH_DATA_CONTENT]) {
+            if ([ret[YYArticleView_QUERY_FINISH_DATA_CONTENT] isKindOfClass:[NSAttributedString class]])
+                self.articleContent.attributedText = ret[YYArticleView_QUERY_FINISH_DATA_CONTENT];
+            else if ([ret[YYArticleView_QUERY_FINISH_DATA_CONTENT] isKindOfClass:[NSString class]])
+                self.articleContent.text = ret[YYArticleView_QUERY_FINISH_DATA_CONTENT];
+        }
+        self.articleToolbarEnable = NO;
+        if (ret[YYArticleView_QUERY_FINISH_DATA_TOOLBAR_BUTTON_ITEMS] && [ret[YYArticleView_QUERY_FINISH_DATA_TOOLBAR_BUTTON_ITEMS] isKindOfClass:[NSArray class]]) {
+            self.articleToolbar.items = nil;
+            for (id item in [ret[YYArticleView_QUERY_FINISH_DATA_TOOLBAR_BUTTON_ITEMS] allObjects]) {
+                if ([item isKindOfClass:[UIBarButtonItem class]]) {
+                    [item addTarget:self action:@selector(toolbarItemAction:) forControlEvents:UIControlEventTouchDown];
+                }
+            }
+            self.articleToolbar.items = ret[YYArticleView_QUERY_FINISH_DATA_TOOLBAR_BUTTON_ITEMS];
+            if ([self.articleToolbar.items count]) {
+                self.articleToolbarEnable = YES;
+            }
+        }
+    }
+    self.isLoading = NO;
+    [self setupLayout];
+}
+
 #pragma mark - view init
 
 - (void)setupLayout
@@ -134,8 +186,8 @@
             } else
                 self.articleToolbarHeight = 0;
             self.loadingSize = CGSizeMake(60, 60);
-            self.loadingView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhite;
-            self.loadingView.layer.cornerRadius = 10;
+            self.activityIndicatorView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhite;
+            self.activityIndicatorView.layer.cornerRadius = 10;
 
         }
             break;
@@ -148,8 +200,8 @@
             } else
                 self.articleToolbarHeight = 0;
             self.loadingSize = CGSizeMake(175, 175);
-            self.loadingView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
-            self.loadingView.layer.cornerRadius = 25;
+            self.activityIndicatorView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+            self.activityIndicatorView.layer.cornerRadius = 25;
 
             //self.loadingView.transform = CGAffineTransformMakeScale(1.1, 1.1);
         }
@@ -175,25 +227,25 @@
             self.navigactionToolbarHeight = self.navigationController.toolbar.frame.size.height;
     }
     
-    [self.loadingView removeFromSuperview];
-    [self.loadingViewText removeFromSuperview];
+    [self.activityIndicatorView removeFromSuperview];
+    [self.loadingTextView removeFromSuperview];
     if (self.isLoading) {
-        self.loadingView.frame = CGRectMake(totalScreenSize.width/2 - self.loadingSize.width/2, totalScreenSize.height/2 - self.loadingSize.height/2, self.loadingSize.width, self.loadingSize.height);
-        [self.loadingView startAnimating];
-        if ([self.loadingViewText.text length]) {
-            if (CGSizeEqualToSize(CGSizeZero, self.loadingViewText.frame.size)) {
-                self.loadingViewText.frame = CGRectMake(self.loadingView.frame.origin.x, self.loadingView.frame.origin.y + self.loadingView.frame.size.height, self.loadingView.frame.size.width, self.fontBaseSize);
-                self.loadingViewText.font = [UIFont systemFontOfSize:self.fontBaseSize/2];
-                self.loadingViewText.textAlignment = NSTextAlignmentCenter;
-                self.loadingViewText.backgroundColor = [UIColor clearColor];
+        self.activityIndicatorView.frame = CGRectMake(totalScreenSize.width/2 - self.loadingSize.width/2, totalScreenSize.height/2 - self.loadingSize.height/2, self.loadingSize.width, self.loadingSize.height);
+        [self.activityIndicatorView startAnimating];
+        if ([self.loadingTextView.text length]) {
+            if (CGSizeEqualToSize(CGSizeZero, self.loadingTextView.frame.size)) {
+                self.loadingTextView.frame = CGRectMake(self.activityIndicatorView.frame.origin.x, self.activityIndicatorView.frame.origin.y + self.activityIndicatorView.frame.size.height, self.activityIndicatorView.frame.size.width, self.fontBaseSize);
+                self.loadingTextView.font = [UIFont systemFontOfSize:self.fontBaseSize/2];
+                self.loadingTextView.textAlignment = NSTextAlignmentCenter;
+                self.loadingTextView.backgroundColor = [UIColor clearColor];
             } else {
-                self.loadingViewText.frame = CGRectMake(self.loadingView.frame.origin.x + (self.loadingView.frame.size.width - self.loadingViewText.frame.size.width), self.loadingView.frame.origin.y + self.loadingView.frame.size.height/2, self.loadingViewText.frame.size.width, self.loadingViewText.frame.size.height);
+                self.loadingTextView.frame = CGRectMake(self.activityIndicatorView.frame.origin.x + (self.activityIndicatorView.frame.size.width - self.loadingTextView.frame.size.width), self.activityIndicatorView.frame.origin.y + self.activityIndicatorView.frame.size.height/2, self.loadingTextView.frame.size.width, self.loadingTextView.frame.size.height);
             }
-            [self.view addSubview:self.loadingViewText];
+            [self.view addSubview:self.loadingTextView];
         }
-        [self.view addSubview:self.loadingView];
+        [self.view addSubview:self.activityIndicatorView];
     } else {
-        [self.loadingView stopAnimating];
+        [self.activityIndicatorView stopAnimating];
         
         CGSize targetSize = CGSizeZero;
         // Step 4: fill article title
