@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   s.source   = { :git => 'https://github.com/changyy/YYArticleViewController.git',
                  :tag => "#{s.version}" }
   s.description = ''
-  s.source_files = '{YYArticleViewController}/*.{h,m}'
+  s.source_files = '{YYArticleViewController,YYArticleListViewController}/*.{h,m}'
   s.requires_arc = true
   s.ios.deployment_target = '4.0'
 end
