@@ -13,4 +13,6 @@
 @property (nonatomic, strong) NSAttributedString *titleForPullToRefresh;
 @property (nonatomic, strong) NSAttributedString *titleForLoading;
 
+- (void)refreshData;
+
 @end
